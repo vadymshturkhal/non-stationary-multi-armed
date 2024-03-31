@@ -158,26 +158,33 @@ class NonStationaryAgentUCB(Agent):
         return np.argmax(ucb_values)
 
 class TDZero(Agent):
-    def __init__(self, k, epsilon=0.1):
+    def __init__(self, k, epsilon=0.1, alpha=0.1):
         super().__init__(k, epsilon)
-        self.alpha = 0.001
+        self.alpha = alpha
         self.gamma = 0.9
+        self.all_bet = BET
+        self._available_bet = BET
+        self.V = {}
 
     def get_state(self) -> np.array:
-        return np.array([self.points])
+        return self.points
 
     def choose_action(self) -> int:
         return super().choose_action()
 
     # Update the estimates of action values
-    def update_estimates(self, action, reward, action_next):
+    def update_estimates(self, state, action, reward, state_next):
         self.N[action] += 1
-        self.Q[action] = self.Q[action] + self.alpha * (reward + self.gamma * action_next - self.Q[action])
+
+        if state not in self.V:
+            self.V[state] = 0
+
+        self.V[state] = self.V[state] + self.alpha * (reward + self.gamma * state_next - self.V[state])
 
     def choose_action(self):
-        available_bet = self._update_available_actions()
+        self._update_available_actions()
         if np.random.rand() < self.epsilon:
-            return np.random.choice(len(available_bet))
+            return np.random.choice(len(self._available_bet))
         else:
             Q_available = self.Q[:len(self._available_bet)]
             arg_max = np.argmax(Q_available)
@@ -188,4 +195,4 @@ class TDZero(Agent):
         for bet in self.all_bet:
             if self.points >= bet:
                 available_bet.append(bet)
-        return available_bet
+        self._available_bet = available_bet

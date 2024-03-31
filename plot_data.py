@@ -56,7 +56,6 @@ def plot_epoch_rewards(epoch_rewards: list):
     # Show the plot
     plt.show()
 
-
 if __name__ == '__main__':
     db_operations = DB_Operations(is_clear=False)
     epoch_rewards = db_operations.get_epoch_rewards(epochs_amount=40)
