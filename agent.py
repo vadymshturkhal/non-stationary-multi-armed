@@ -156,3 +156,36 @@ class NonStationaryAgentUCB(Agent):
             return np.argmin(self.N)
         ucb_values = self.Q + self.c * np.sqrt((2 * np.log(self.total_steps)) / self.N)
         return np.argmax(ucb_values)
+
+class TDZero(Agent):
+    def __init__(self, k, epsilon=0.1):
+        super().__init__(k, epsilon)
+        self.alpha = 0.001
+        self.gamma = 0.9
+
+    def get_state(self) -> np.array:
+        return np.array([self.points])
+
+    def choose_action(self) -> int:
+        return super().choose_action()
+
+    # Update the estimates of action values
+    def update_estimates(self, action, reward, action_next):
+        self.N[action] += 1
+        self.Q[action] = self.Q[action] + self.alpha * (reward + self.gamma * action_next - self.Q[action])
+
+    def choose_action(self):
+        available_bet = self._update_available_actions()
+        if np.random.rand() < self.epsilon:
+            return np.random.choice(len(available_bet))
+        else:
+            Q_available = self.Q[:len(self._available_bet)]
+            arg_max = np.argmax(Q_available)
+            return arg_max
+
+    def _update_available_actions(self):
+        available_bet = []
+        for bet in self.all_bet:
+            if self.points >= bet:
+                available_bet.append(bet)
+        return available_bet
