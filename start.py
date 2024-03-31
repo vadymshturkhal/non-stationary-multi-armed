@@ -46,9 +46,9 @@ def start_epoch(main_agent, main_agent_params, support_agent, support_agent_para
 
 if __name__ =='__main__':
     k = 1  # Number of actions (bandits)
-    epsilon = 0.2  # Exploration probability
-    alpha = 0.5
-    steps = 10000
+    epsilon = 0.1  # Exploration probability
+    alpha = 0.4
+    steps = 1000
     epochs = 10
     rewards = []
     betting = []
