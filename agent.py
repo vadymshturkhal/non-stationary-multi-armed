@@ -172,10 +172,10 @@ class TDZero():
         self.gamma = gamma
         self.all_bet = BET
         self._available_bet = BET
-        self._epochs_trained = 0
         self._upper_bound = START_POINT * END_MULTIPLIER
         self._lower_bound = START_POINT * MIN_POINTS_MULTIPLIER
-        self._total_win = 0
+        self._hands_played = 0
+        self._win_times = 0
 
         self._epoch_memory = deque(maxlen=MAX_MEMORY)
         self.model = Linear_QNet(INPUT_LAYER_SIZE, HIDDEN_LAYER_SIZE1, HIDDEN_LAYER_SIZE2, len(BET))
@@ -185,23 +185,22 @@ class TDZero():
         # Load the weights onto the CPU or GPU
         if is_load_weights:
             checkpoint = torch.load(self._model_filename)
-            self._epochs_trained = checkpoint['epochs_trained']
+            self._hands_played = checkpoint['hands_played']
+            self._win_times = checkpoint['win_times']
             self.model.load_state_dict(checkpoint['model_state_dict'])
             self.model.eval()
 
     def reset_points(self):
-        self._epochs_trained += 1
         self.points = START_POINT
         self.rewards.clear()
         self._epoch_memory.clear()
-        self._total_win = 0
         self._update_available_actions()
 
     def get_state(self) -> np.array:
-        if len(self.rewards) == 0:
+        if self._hands_played == 0:
             win_prob = 0
         else:
-            win_prob = self._total_win / len(self.rewards)
+            win_prob = self._win_times / self._hands_played
 
         state =  np.array([
             self.points,
@@ -235,11 +234,11 @@ class TDZero():
             return bet
 
     def update_points(self, bet, reward):
-        win = reward - bet
-        if win > 0:
-            self._total_win += 1
+        if reward > 0:
+            self._win_times += 1
+        self._hands_played += 1
 
-        self.points += win
+        self.points += reward - bet
         self.rewards.append(self.points)
         if self.points >= self._upper_bound:
             return True
@@ -252,7 +251,8 @@ class TDZero():
     def save(self):
         torch.save({
             'model_state_dict': self.model.state_dict(),
-            'epochs_trained': self._epochs_trained,
+            'hands_played': self._hands_played,
+            'win_times': self._win_times,
             }, self._model_filename)
 
     def _update_available_actions(self):
