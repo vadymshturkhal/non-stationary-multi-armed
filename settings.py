@@ -1,4 +1,10 @@
+# Data filename
 nonstationary_bandit_data_average_reward = './data/nonstationary_bandit_average_reward.csv'
+
+# Model
+MODEL_FOLDER = './model/'
+
+# Bet
 ACTION_COST = 1
 START_POINT = 1000
 END_MULTIPLIER = 1.2
@@ -15,4 +21,3 @@ WEIGHT_DECAY = 1e-5
 INPUT_LAYER_SIZE = 2
 HIDDEN_LAYER_SIZE1 = 128
 HIDDEN_LAYER_SIZE2 = 128
-OUTPUT_LAYER_SIZE = 1
