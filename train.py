@@ -52,7 +52,7 @@ class TrainAgent:
             self.bet_agent.reset_points()
 
             if max_epoch_reward < epoch_reward:
-                self.bet_agent.save(epoch)
+                self.bet_agent.save()
 
         return cost
 
@@ -66,9 +66,11 @@ if __name__ =='__main__':
     rewards = []
     betting = []
 
+    is_load_bet_weights = True
+
     game = MultiArmedGame(k, speed=60, is_rendering=False) 
     main_agent = NonStationaryAgent(k, epsilon, alpha)
-    bet_agent = TDZero(len(BET), epsilon, alpha)
+    bet_agent = TDZero(len(BET), epsilon, alpha, is_load_weights=is_load_bet_weights)
 
     ta = TrainAgent(game=game, main_agent=main_agent, bet_agent=bet_agent)
     print(ta.train_epoch(epochs_quantity=epochs, games_in_epoch=games))

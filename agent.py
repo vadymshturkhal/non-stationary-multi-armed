@@ -163,7 +163,7 @@ class NonStationaryAgentUCB(Agent):
         return np.argmax(ucb_values)
 
 class TDZero():
-    def __init__(self, k, epsilon=0.1, alpha=0.1):
+    def __init__(self, k, epsilon=0.1, alpha=0.1, is_load_weights=False):
         self.k = k
         self.epsilon = epsilon
         self.points = START_POINT
@@ -173,13 +173,22 @@ class TDZero():
         self.gamma = 0.9
         self.all_bet = BET
         self._available_bet = BET
-        self.V = {}
+        self._epochs_trained = 0
 
         self.memory = deque(maxlen=MAX_MEMORY)
         self.model = Linear_QNet(INPUT_LAYER_SIZE, HIDDEN_LAYER_SIZE1, HIDDEN_LAYER_SIZE2, len(BET))
         self.trainer = TDZeroTrainer(self.model, lr=self.alpha, gamma=self.gamma)
+        self._model_filename = MODEL_FOLDER + 'tdzero.pth'
+
+        # Load the weights onto the CPU or GPU
+        if is_load_weights:
+            checkpoint = torch.load(self._model_filename)
+            self._epochs_trained = checkpoint['epochs_trained']
+            self.model.load_state_dict(checkpoint['model_state_dict'])
+            self.model.eval()
 
     def reset_points(self):
+        self._epochs_trained += 1
         self.points = START_POINT
         self.rewards.clear()
         self._update_available_actions()
@@ -218,12 +227,11 @@ class TDZero():
     def train_short_memory(self, state, reward, next_state, done):
         self.trainer.train_step(state, reward, next_state, done)
 
-    def save(self, epoch=0):
-        filename = MODEL_FOLDER + 'tdzero.pth'
+    def save(self):
         torch.save({
             'model_state_dict': self.model.state_dict(),
-            'epoch': epoch,
-            }, filename)
+            'epochs_trained': self._epochs_trained,
+            }, self._model_filename)
 
     def _update_available_actions(self):
         available_bet = []
