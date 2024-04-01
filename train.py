@@ -9,11 +9,37 @@ class TrainAgent:
         self.game = game
         self.main_agent = main_agent
         self.bet_agent = bet_agent
+        self._rewards = []
+        self._betting = []
 
     def train(self, games=1000):
-        rewards.clear()
-        betting.clear()
-        for _ in range(games):
+        cost = 0
+        max_game_reward = float('-inf')
+        db_operations = DB_Operations()
+
+        for game in range(games):
+            game_reward = self._train_single_game()
+            game_reward = game_reward - START_POINT
+            cost += game_reward
+            
+            db_operations.add_epoch_to_db(game, game_reward, self.bet_agent, self._rewards, self._betting)
+            self.bet_agent.reset_points()
+
+            if max_game_reward < game_reward:
+                self.bet_agent.save()
+
+            self.bet_agent.train_epoch()
+            print(game_reward)
+
+        return cost
+
+    def _train_single_game(self):
+        self._rewards.clear()
+        self._betting.clear()
+        self.bet_agent.reset_points()
+        is_game_end = False
+
+        while not is_game_end:
             state = self.bet_agent.get_state()
         
             choose_dealer = self.main_agent.choose_action()
@@ -31,43 +57,17 @@ class TrainAgent:
             self.main_agent.update_estimates(choose_dealer, reward - last_bet)
             self.bet_agent.update_estimates(state, reward - last_bet, state_next, is_game_end)
 
-            rewards.append(reward)
-            betting.append(last_bet)
-
-            if is_game_end:
-                break
+            self._rewards.append(reward)
+            self._betting.append(last_bet)
 
         return self.bet_agent.points
-
-    def train_epoch(self, epochs_quantity=1, games_in_epoch=1000):
-        cost = 0
-        max_epoch_reward = float('-inf')
-        db_operations = DB_Operations()
-        for epoch in range(epochs_quantity):
-            epoch_reward = self.train(games=games_in_epoch)
-            epoch_reward = epoch_reward - START_POINT
-
-            cost += epoch_reward
-            db_operations.add_epoch_to_db(epoch, epoch_reward, self.bet_agent, rewards, betting)
-            self.bet_agent.reset_points()
-
-            if max_epoch_reward < epoch_reward:
-                self.bet_agent.save()
-
-            self.bet_agent.train_epoch()
-            # print(epoch_reward)
-
-        return cost
 
 
 if __name__ =='__main__':
     k = 1  # Number of bandits
     epsilon = 0.1  # Exploration probability
     alpha = 0.1
-    games = 4000
-    epochs = 20
-    rewards = []
-    betting = []
+    games = 1000
 
     is_load_bet_weights = True
 
@@ -76,4 +76,4 @@ if __name__ =='__main__':
     bet_agent = TDZero(len(BET), epsilon, alpha, is_load_weights=is_load_bet_weights)
 
     ta = TrainAgent(game=game, main_agent=main_agent, bet_agent=bet_agent)
-    print(ta.train_epoch(epochs_quantity=epochs, games_in_epoch=games))
+    print(ta.train(games=games))
