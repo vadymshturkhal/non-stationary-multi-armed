@@ -4,7 +4,7 @@ import torch
 
 
 from model import Linear_QNet, TDZeroTrainer
-from settings import BET, END_MULTIPLIER, HIDDEN_LAYER_SIZE1, HIDDEN_LAYER_SIZE2, INPUT_LAYER_SIZE, MAX_MEMORY, OUTPUT_LAYER_SIZE, START_POINT
+from settings import BET, END_MULTIPLIER, HIDDEN_LAYER_SIZE1, HIDDEN_LAYER_SIZE2, INPUT_LAYER_SIZE, MAX_MEMORY, START_POINT
 
 
 class Agent:
@@ -176,7 +176,7 @@ class TDZero():
         self.V = {}
 
         self.memory = deque(maxlen=MAX_MEMORY)
-        self.model = Linear_QNet(INPUT_LAYER_SIZE, HIDDEN_LAYER_SIZE1, HIDDEN_LAYER_SIZE2, OUTPUT_LAYER_SIZE)
+        self.model = Linear_QNet(INPUT_LAYER_SIZE, HIDDEN_LAYER_SIZE1, HIDDEN_LAYER_SIZE2, len(BET))
         self.trainer = TDZeroTrainer(self.model, lr=self.alpha, gamma=self.gamma)
 
     def get_state(self) -> np.array:
@@ -189,12 +189,14 @@ class TDZero():
     def choose_action(self):
         self._update_available_actions()
         if np.random.rand() < self.epsilon:
-            return np.random.choice(len(self._available_bet))
+            random_bet = np.random.choice(len(self._available_bet))
+            print(f'{random_bet=}')
+            return random_bet
         else:
             state = torch.tensor(self.get_state(), dtype=torch.float)
             prediction = self.model(state)
             bet = torch.argmax(prediction).item()
-
+            print(bet, 'model')
             return bet
 
     def update_points(self, bet, reward):
