@@ -190,13 +190,13 @@ class TDZero():
         self._update_available_actions()
         if np.random.rand() < self.epsilon:
             random_bet = np.random.choice(len(self._available_bet))
-            print(f'{random_bet=}')
             return random_bet
         else:
             state = torch.tensor(self.get_state(), dtype=torch.float)
             prediction = self.model(state)
+            # Slice unavailable actions
+            prediction[len(self._available_bet):] = float('-inf')
             bet = torch.argmax(prediction).item()
-            print(bet, 'model')
             return bet
 
     def update_points(self, bet, reward):
@@ -219,3 +219,8 @@ class TDZero():
             if self.points >= bet:
                 available_bet.append(bet)
         self._available_bet = available_bet
+
+    def _mask_unavailable_actions(self, action_values, available_actions):
+        mask = torch.full(action_values.shape, float('-inf'))  # Initialize with negative infinity
+        mask[:, available_actions] = 0  # Set 0 for indices of available actions
+        return action_values + mask
