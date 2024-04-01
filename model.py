@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 
-from settings import DROPOUT_RATE, MODEL_FOLDER, WEIGHT_DECAY
+from settings import DROPOUT_RATE, WEIGHT_DECAY
 
 
 class Linear_QNet(nn.Module):
@@ -25,19 +25,12 @@ class Linear_QNet(nn.Module):
         x = self.linear3(x)
         return x
 
-    def save(self, epoch=0, filename=None):
-        filename = MODEL_FOLDER + 'tdzero.pth'
-        torch.save({
-            'model_state_dict': self.state_dict(),
-            'epoch': epoch,
-            }, filename)
-
 class TDZeroTrainer:
     def __init__(self, model, lr, gamma):
         self.lr = lr
         self.gamma = gamma
         self.model = model
-        self.optimizer = optim.Adam(model.parameters(), lr=self.lr)
+        self.optimizer = optim.Adam(model.parameters(), lr=self.lr, weight_decay=WEIGHT_DECAY)
         self.criterion = nn.SmoothL1Loss()
 
     def train_step(self, state, reward, next_state, done):
