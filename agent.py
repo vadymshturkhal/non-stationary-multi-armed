@@ -181,6 +181,7 @@ class TDZero():
 
     def reset_points(self):
         self.points = START_POINT
+        self.rewards.clear()
         self._update_available_actions()
 
     def get_state(self) -> np.array:
