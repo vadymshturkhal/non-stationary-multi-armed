@@ -175,6 +175,7 @@ class TDZero():
         self._epochs_trained = 0
         self._upper_bound = START_POINT * END_MULTIPLIER
         self._lower_bound = START_POINT * MIN_POINTS_MULTIPLIER
+        self._total_win = 0
 
         self._epoch_memory = deque(maxlen=MAX_MEMORY)
         self.model = Linear_QNet(INPUT_LAYER_SIZE, HIDDEN_LAYER_SIZE1, HIDDEN_LAYER_SIZE2, len(BET))
@@ -193,13 +194,20 @@ class TDZero():
         self.points = START_POINT
         self.rewards.clear()
         self._epoch_memory.clear()
+        self._total_win = 0
         self._update_available_actions()
 
     def get_state(self) -> np.array:
+        if len(self.rewards) == 0:
+            win_prob = 0
+        else:
+            win_prob = self._total_win / len(self.rewards)
+
         state =  np.array([
             self.points,
+            win_prob,
             self._upper_bound,
-            self._lower_bound
+            self._lower_bound,
             ])
 
         return state
@@ -227,7 +235,11 @@ class TDZero():
             return bet
 
     def update_points(self, bet, reward):
-        self.points += reward - bet
+        win = reward - bet
+        if win > 0:
+            self._total_win += 1
+
+        self.points += win
         self.rewards.append(self.points)
         if self.points >= self._upper_bound:
             return True
