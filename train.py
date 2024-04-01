@@ -41,6 +41,7 @@ class TrainAgent:
 
     def train_epoch(self, epochs_quantity=1, games_in_epoch=1000):
         cost = 0
+        max_epoch_reward = float('-inf')
         db_operations = DB_Operations()
         for epoch in range(epochs_quantity):
             epoch_reward = self.train(games=games_in_epoch)
@@ -50,6 +51,9 @@ class TrainAgent:
             db_operations.add_epoch_to_db(epoch, epoch_reward, self.bet_agent, rewards, betting)
             self.bet_agent.reset_points()
 
+            if max_epoch_reward < epoch_reward:
+                self.bet_agent.save(epoch)
+
         return cost
 
 
@@ -58,7 +62,7 @@ if __name__ =='__main__':
     epsilon = 0.1  # Exploration probability
     alpha = 0.1
     games = 1000
-    epochs = 20
+    epochs = 6
     rewards = []
     betting = []
 
