@@ -42,19 +42,6 @@ class MultiArmedGame:
             self.clock.tick(self.game_speed)
             pygame.display.flip()
 
-    def _handle_events(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                print('Quit')
-                pygame.quit()
-                sys.exit()
-            
-            if self.ai_agent is None:
-                if event.type == pygame.KEYDOWN:
-                    if pygame.K_1 <= event.key <= pygame.K_9:
-                        chosen_bandit = event.key - pygame.K_1
-                        self.apply_action(chosen_bandit)
-
     def apply_action(self, action: int, bet:int):
         if action < 0:
             raise Exception(f'Unavailable action {action}')
@@ -67,6 +54,19 @@ class MultiArmedGame:
             return self.last_reward
         else:
             raise Exception(f"Can't pull arm {action}")
+
+    def _handle_events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                print('Quit')
+                pygame.quit()
+                sys.exit()
+            
+            if self.ai_agent is None:
+                if event.type == pygame.KEYDOWN:
+                    if pygame.K_1 <= event.key <= pygame.K_9:
+                        chosen_bandit = event.key - pygame.K_1
+                        self.apply_action(chosen_bandit)
 
     def _draw_text(self, text, position):
         text_surface = self.font.render(text, True, text_color)

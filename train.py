@@ -48,6 +48,7 @@ class TrainAgent:
 
             cost += epoch_reward
             db_operations.add_epoch_to_db(epoch, epoch_reward, self.bet_agent, rewards, betting)
+            self.bet_agent.reset_points()
 
         return cost
 
@@ -57,7 +58,7 @@ if __name__ =='__main__':
     epsilon = 0.1  # Exploration probability
     alpha = 0.1
     games = 1000
-    epochs = 1
+    epochs = 20
     rewards = []
     betting = []
 

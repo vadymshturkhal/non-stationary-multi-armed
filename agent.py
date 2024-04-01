@@ -179,6 +179,10 @@ class TDZero():
         self.model = Linear_QNet(INPUT_LAYER_SIZE, HIDDEN_LAYER_SIZE1, HIDDEN_LAYER_SIZE2, len(BET))
         self.trainer = TDZeroTrainer(self.model, lr=self.alpha, gamma=self.gamma)
 
+    def reset_points(self):
+        self.points = START_POINT
+        self._update_available_actions()
+
     def get_state(self) -> np.array:
         return np.array([self.points, len(self._available_bet)])
 

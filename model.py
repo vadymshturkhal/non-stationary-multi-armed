@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 
-from settings import DROPOUT_RATE, WEIGHT_DECAY
+from settings import DROPOUT_RATE, MODEL_FOLDER, WEIGHT_DECAY
 
 
 class Linear_QNet(nn.Module):
@@ -26,6 +26,7 @@ class Linear_QNet(nn.Module):
         return x
 
     def save(self, epoch=0, filename=None):
+        filename = MODEL_FOLDER + 'tdzero.pth'
         torch.save({
             'model_state_dict': self.state_dict(),
             'epoch': epoch,
