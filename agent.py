@@ -1,5 +1,10 @@
+from collections import deque
 import numpy as np
-from settings import BET, END_MULTIPLIER, START_POINT
+import torch
+
+
+from model import Linear_QNet, TDZeroTrainer
+from settings import BET, END_MULTIPLIER, HIDDEN_LAYER_SIZE1, HIDDEN_LAYER_SIZE2, INPUT_LAYER_SIZE, MAX_MEMORY, OUTPUT_LAYER_SIZE, START_POINT
 
 
 class Agent:
@@ -157,38 +162,54 @@ class NonStationaryAgentUCB(Agent):
         ucb_values = self.Q + self.c * np.sqrt((2 * np.log(self.total_steps)) / self.N)
         return np.argmax(ucb_values)
 
-class TDZero(Agent):
+class TDZero():
     def __init__(self, k, epsilon=0.1, alpha=0.1):
-        super().__init__(k, epsilon)
+        self.k = k
+        self.epsilon = epsilon
+        self.points = START_POINT
+        self.rewards = []
+
         self.alpha = alpha
         self.gamma = 0.9
         self.all_bet = BET
         self._available_bet = BET
         self.V = {}
 
-    def get_state(self) -> np.array:
-        return self.points
+        self.memory = deque(maxlen=MAX_MEMORY)
+        self.model = Linear_QNet(INPUT_LAYER_SIZE, HIDDEN_LAYER_SIZE1, HIDDEN_LAYER_SIZE2, OUTPUT_LAYER_SIZE)
+        self.trainer = TDZeroTrainer(self.model, lr=self.alpha, gamma=self.gamma)
 
-    def choose_action(self) -> int:
-        return super().choose_action()
+    def get_state(self) -> np.array:
+        return np.array([self.points, len(self._available_bet)])
 
     # Update the estimates of action values
-    def update_estimates(self, state, action, reward, state_next):
-        self.N[action] += 1
-
-        if state not in self.V:
-            self.V[state] = 0
-
-        self.V[state] = self.V[state] + self.alpha * (reward + self.gamma * state_next - self.V[state])
+    def update_estimates(self, state, reward, state_next, done):
+        self.trainer.train_step(state, reward, state_next, done)
 
     def choose_action(self):
         self._update_available_actions()
         if np.random.rand() < self.epsilon:
             return np.random.choice(len(self._available_bet))
         else:
-            Q_available = self.Q[:len(self._available_bet)]
-            arg_max = np.argmax(Q_available)
-            return arg_max
+            state = torch.tensor(self.get_state(), dtype=torch.float)
+            prediction = self.model(state)
+            bet = torch.argmax(prediction).item()
+
+            return bet
+
+    def update_points(self, bet, reward):
+        self.points += reward - bet
+        self.rewards.append(self.points)
+        if self.points >= START_POINT * END_MULTIPLIER:
+            return True
+
+        if self.points <= 0:
+            return True
+        
+        return False
+
+    def train_short_memory(self, state, reward, next_state, done):
+        self.trainer.train_step(state, reward, next_state, done)
 
     def _update_available_actions(self):
         available_bet = []

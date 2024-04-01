@@ -41,15 +41,13 @@ class TDZeroTrainer:
 
     def train_step(self, state, reward, next_state, done):
         state = torch.tensor(state, dtype=torch.float)
-        next_state = torch.tensor(next_state, dtype=torch.float)
         reward = torch.tensor(reward, dtype=torch.float)
-        # (n, )
+        next_state = torch.tensor(next_state, dtype=torch.float)
 
         if len(state.shape) == 1:
-            # (1, x)
             state = torch.unsqueeze(state, 0)
-            next_state = torch.unsqueeze(next_state, 0)
             reward = torch.unsqueeze(reward, 0)
+            next_state = torch.unsqueeze(next_state, 0)
         
         # Get current state value
         current_v_values = self.model(state)
@@ -58,7 +56,7 @@ class TDZeroTrainer:
         next_v_values = self.model(next_state).detach()
         
         # If not done, use the TD(0) update rule, else use reward as the final value
-        target = reward + (self.gamma * next_v_values * (1 - done.float()))
+        target = reward + (self.gamma * next_v_values * (1 - float(done)))
         
         self.optimizer.zero_grad()
         loss = self.criterion(current_v_values, target)

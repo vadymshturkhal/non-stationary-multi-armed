@@ -29,7 +29,7 @@ class TrainAgent:
             state_next = self.bet_agent.get_state()
 
             self.main_agent.update_estimates(choose_dealer, reward - last_bet)
-            self.bet_agent.update_estimates(state, action_bet, reward - last_bet, state_next)
+            self.bet_agent.update_estimates(state, reward - last_bet, state_next, is_game_end)
 
             rewards.append(reward)
             betting.append(last_bet)
