@@ -47,7 +47,7 @@ class TrainAgent:
             epoch_reward = epoch_reward - START_POINT
 
             cost += epoch_reward
-            db_operations.add_epoch_to_db(epoch, epoch_reward, self.support_agent, rewards, betting)
+            db_operations.add_epoch_to_db(epoch, epoch_reward, self.bet_agent, rewards, betting)
 
         return cost
 
@@ -57,7 +57,7 @@ if __name__ =='__main__':
     epsilon = 0.1  # Exploration probability
     alpha = 0.1
     games = 1000
-    epochs = 10
+    epochs = 1
     rewards = []
     betting = []
 
@@ -66,4 +66,4 @@ if __name__ =='__main__':
     bet_agent = TDZero(len(BET), epsilon, alpha)
 
     ta = TrainAgent(game=game, main_agent=main_agent, bet_agent=bet_agent)
-    print(ta.train(games=games))
+    print(ta.train_epoch(epochs_quantity=epochs, games_in_epoch=games))
