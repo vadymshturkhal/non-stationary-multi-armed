@@ -25,11 +25,11 @@ class TrainAgent:
             db_operations.add_epoch_to_db(game, game_reward, self.bet_agent, self._rewards, self._betting)
             self.bet_agent.reset_points()
 
-            if max_game_reward < game_reward:
+            if game_reward > 0:
+                print('saved', f'{game_reward=}')
                 self.bet_agent.save()
 
             self.bet_agent.train_epoch()
-            print(game_reward)
 
         return cost
 
@@ -67,8 +67,7 @@ if __name__ =='__main__':
     k = 1  # Number of bandits
     epsilon = 0.1  # Exploration probability
     alpha = 0.1
-    games = 1000
-
+    games = 100
     is_load_bet_weights = True
 
     game = MultiArmedGame(k, speed=60, is_rendering=False) 
