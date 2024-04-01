@@ -175,7 +175,7 @@ class TDZero():
         self._available_bet = BET
         self._epochs_trained = 0
 
-        self.memory = deque(maxlen=MAX_MEMORY)
+        self._epoch_memory = deque(maxlen=MAX_MEMORY)
         self.model = Linear_QNet(INPUT_LAYER_SIZE, HIDDEN_LAYER_SIZE1, HIDDEN_LAYER_SIZE2, len(BET))
         self.trainer = TDZeroTrainer(self.model, lr=self.alpha, gamma=self.gamma)
         self._model_filename = MODEL_FOLDER + 'tdzero.pth'
@@ -191,6 +191,7 @@ class TDZero():
         self._epochs_trained += 1
         self.points = START_POINT
         self.rewards.clear()
+        self._epoch_memory.clear()
         self._update_available_actions()
 
     def get_state(self) -> np.array:
@@ -199,6 +200,11 @@ class TDZero():
     # Update the estimates of action values
     def update_estimates(self, state, reward, state_next, done):
         self.trainer.train_step(state, reward, state_next, done)
+        self._epoch_memory.append((state, reward, state_next, done))
+
+    def train_epoch(self):
+        for episode in self._epoch_memory:
+            self.update_estimates(*episode)
 
     def choose_action(self):
         self._update_available_actions()
@@ -223,9 +229,6 @@ class TDZero():
             return True
         
         return False
-
-    def train_short_memory(self, state, reward, next_state, done):
-        self.trainer.train_step(state, reward, next_state, done)
 
     def save(self):
         torch.save({

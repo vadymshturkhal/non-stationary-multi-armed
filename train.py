@@ -54,6 +54,9 @@ class TrainAgent:
             if max_epoch_reward < epoch_reward:
                 self.bet_agent.save()
 
+            self.bet_agent.train_epoch()
+            # print(epoch_reward)
+
         return cost
 
 
@@ -61,8 +64,8 @@ if __name__ =='__main__':
     k = 1  # Number of bandits
     epsilon = 0.1  # Exploration probability
     alpha = 0.1
-    games = 1000
-    epochs = 6
+    games = 4000
+    epochs = 20
     rewards = []
     betting = []
 
