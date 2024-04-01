@@ -4,7 +4,7 @@ import torch
 
 
 from model import Linear_QNet, TDZeroTrainer
-from settings import BET, END_MULTIPLIER, HIDDEN_LAYER_SIZE1, HIDDEN_LAYER_SIZE2, INPUT_LAYER_SIZE, MAX_MEMORY, START_POINT
+from settings import BET, END_MULTIPLIER, HIDDEN_LAYER_SIZE1, HIDDEN_LAYER_SIZE2, INPUT_LAYER_SIZE, MAX_MEMORY, MODEL_FOLDER, START_POINT
 
 
 class Agent:
@@ -216,6 +216,13 @@ class TDZero():
 
     def train_short_memory(self, state, reward, next_state, done):
         self.trainer.train_step(state, reward, next_state, done)
+
+    def save(self, epoch=0):
+        filename = MODEL_FOLDER + 'tdzero.pth'
+        torch.save({
+            'model_state_dict': self.model.state_dict(),
+            'epoch': epoch,
+            }, filename)
 
     def _update_available_actions(self):
         available_bet = []
