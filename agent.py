@@ -163,8 +163,7 @@ class NonStationaryAgentUCB(Agent):
         return np.argmax(ucb_values)
 
 class TDZero():
-    def __init__(self, k, epsilon=0.1, alpha=0.1, gamma=0, is_load_weights=False):
-        self.k = k
+    def __init__(self, alpha=0.1, epsilon=0.1, gamma=0, is_load_weights=False):
         self.epsilon = epsilon
         self.points = START_POINT
         self.rewards = []
