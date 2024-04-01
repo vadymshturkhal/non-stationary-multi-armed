@@ -195,7 +195,20 @@ class TDZero():
         self._update_available_actions()
 
     def get_state(self) -> np.array:
-        return np.array([self.points, len(self._available_bet)])
+        state_bet = []
+        for bet in self.all_bet:
+            if bet <= self.points:
+                state_bet.append(bet)
+            else:
+                state_bet.append(float('-inf'))
+        
+        state =  np.array([
+            self.points, 
+            len(self._available_bet), 
+            *state_bet
+            ])
+
+        return state
 
     # Update the estimates of action values
     def update_estimates(self, state, reward, state_next, done):
