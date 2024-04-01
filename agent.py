@@ -4,7 +4,7 @@ import torch
 
 
 from model import Linear_QNet, TDZeroTrainer
-from settings import BET, END_MULTIPLIER, HIDDEN_LAYER_SIZE1, HIDDEN_LAYER_SIZE2, INPUT_LAYER_SIZE, MAX_MEMORY, MODEL_FOLDER, START_POINT
+from settings import BET, END_MULTIPLIER, HIDDEN_LAYER_SIZE1, HIDDEN_LAYER_SIZE2, INPUT_LAYER_SIZE, MAX_MEMORY, MIN_POINTS_MULTIPLIER, MODEL_FOLDER, START_POINT
 
 
 class Agent:
@@ -163,14 +163,14 @@ class NonStationaryAgentUCB(Agent):
         return np.argmax(ucb_values)
 
 class TDZero():
-    def __init__(self, k, epsilon=0.1, alpha=0.1, is_load_weights=False):
+    def __init__(self, k, epsilon=0.1, alpha=0.1, gamma=0, is_load_weights=False):
         self.k = k
         self.epsilon = epsilon
         self.points = START_POINT
         self.rewards = []
 
         self.alpha = alpha
-        self.gamma = 0.9
+        self.gamma = gamma
         self.all_bet = BET
         self._available_bet = BET
         self._epochs_trained = 0
@@ -195,17 +195,8 @@ class TDZero():
         self._update_available_actions()
 
     def get_state(self) -> np.array:
-        state_bet = []
-        for bet in self.all_bet:
-            if bet <= self.points:
-                state_bet.append(bet)
-            else:
-                state_bet.append(float('-inf'))
-        
         state =  np.array([
             self.points, 
-            len(self._available_bet), 
-            *state_bet
             ])
 
         return state
@@ -238,7 +229,7 @@ class TDZero():
         if self.points >= START_POINT * END_MULTIPLIER:
             return True
 
-        if self.points <= 0:
+        if self.points <= START_POINT * MIN_POINTS_MULTIPLIER:
             return True
         
         return False
