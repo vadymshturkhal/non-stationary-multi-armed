@@ -14,7 +14,6 @@ class TrainAgent:
 
     def train(self, games=1000):
         cost = 0
-        max_game_reward = float('-inf')
         db_operations = DB_Operations()
 
         for game in range(games):
@@ -22,26 +21,27 @@ class TrainAgent:
             game_reward = game_reward - START_POINT
             cost += game_reward
             
-            db_operations.add_epoch_to_db(game, game_reward, self.bet_agent, self._rewards, self._betting)
-            self.bet_agent.reset_points()
+            db_operations.add_epoch_to_db(game, game_reward, self.game, self._rewards, self._betting)
+            self.game.reset()
+            # self.bet_agent.train_epoch()
 
-            if game_reward > 0:
-                print('saved', f'{game_reward=}')
+            if game_reward > START_POINT:
                 self.bet_agent.save()
-
-            self.bet_agent.train_epoch()
+                print(f'{game_reward=}, {game=}, saved')
+            else:
+                print(f'{game_reward=}, {game=}')
 
         return cost
 
     def _train_single_game(self):
         self._rewards.clear()
         self._betting.clear()
-        self.bet_agent.reset_points()
+        self.game.reset()
         is_game_end = False
 
         while not is_game_end:
-            state = self.bet_agent.get_state()
-        
+            state = self.game.get_state()
+
             choose_dealer = self.main_agent.choose_action()
             action_bet = self.bet_agent.choose_action()
 
@@ -50,9 +50,9 @@ class TrainAgent:
             self.game.play_step()
 
             last_bet = self.game.last_bet
-            is_game_end = self.bet_agent.update_points(last_bet, reward)
+            is_game_end = self.game.update_points(last_bet, reward)
 
-            state_next = self.bet_agent.get_state()
+            state_next = self.game.get_state()
 
             self.main_agent.update_estimates(choose_dealer, reward - last_bet)
             self.bet_agent.update_estimates(state, reward - last_bet, state_next, is_game_end)
@@ -60,19 +60,20 @@ class TrainAgent:
             self._rewards.append(reward)
             self._betting.append(last_bet)
 
-        return self.bet_agent.points
+        return self.game.points
 
 
 if __name__ =='__main__':
-    k = 1  # Number of bandits
-    epsilon = 0.1  # Exploration probability
-    alpha = 0.1
-    games = 100
-    is_load_bet_weights = True
+    k = 1  # Number of arms
+    epsilon = 0.1
+    alpha = 0.01
+    gamma = 0.4
+    games = 10000
+    is_load_bet_weights = False
 
     game = MultiArmedGame(k, speed=60, is_rendering=False) 
     main_agent = NonStationaryAgent(k, epsilon, alpha)
-    bet_agent = TDZero(len(BET), epsilon, alpha, is_load_weights=is_load_bet_weights)
+    bet_agent = TDZero(game, alpha, epsilon, gamma, is_load_weights=is_load_bet_weights)
 
     ta = TrainAgent(game=game, main_agent=main_agent, bet_agent=bet_agent)
     print(ta.train(games=games))
