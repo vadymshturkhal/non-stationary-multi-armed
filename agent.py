@@ -1,6 +1,7 @@
 from collections import deque
 import numpy as np
 import torch
+from game_stats import GameStats
 
 
 from model import Linear_QNet, TDZeroTrainer
@@ -163,9 +164,9 @@ class NonStationaryAgentUCB(Agent):
         return np.argmax(ucb_values)
 
 class TDZero():
-    def __init__(self, alpha=0.1, epsilon=0.1, gamma=0, is_load_weights=False):
+    def __init__(self, game, alpha=0.1, epsilon=0.1, gamma=0, is_load_weights=False):
+        self.game = game
         self.epsilon = epsilon
-        self.points = START_POINT
 
         self.alpha = alpha
         self.gamma = gamma
@@ -202,15 +203,15 @@ class TDZero():
             self._last_action = random_bet
             return random_bet
         else:
-            state = torch.tensor(self.get_state(), dtype=torch.float)
+            state = torch.tensor(self.game.get_state(), dtype=torch.float)
             prediction = self.model(state)
             bet = torch.argmax(prediction).item()
             self._last_action = bet
             return bet
 
-    def save(self):
+    def save(self, stat_class: GameStats):
         torch.save({
             'model_state_dict': self.model.state_dict(),
-            'hands_played': self._hands_played,
-            'win_times': self._win_times,
+            'hands_played': stat_class.hands_played,
+            'win_times': stat_class.times_win,
             }, self._model_filename)
