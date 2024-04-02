@@ -26,7 +26,7 @@ class TrainAgent:
             # self.bet_agent.train_epoch()
 
             if game_reward > START_POINT:
-                self.bet_agent.save()
+                self.bet_agent.save(self.game.game_stats)
                 print(f'{game_reward=}, {game=}, saved')
             else:
                 print(f'{game_reward=}, {game=}')
