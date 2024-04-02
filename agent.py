@@ -170,8 +170,7 @@ class TDZero():
 
         self.alpha = alpha
         self.gamma = gamma
-        self.all_bet = BET
-        self._available_bet = BET
+
         self._upper_bound = START_POINT * END_MULTIPLIER
         self._lower_bound = START_POINT * MIN_POINTS_MULTIPLIER
         self._hands_played = 0
@@ -194,7 +193,6 @@ class TDZero():
         self.points = START_POINT
         self.rewards.clear()
         self._epoch_memory.clear()
-        self._update_available_actions()
 
     def get_state(self) -> np.array:
         if self._hands_played == 0:
@@ -213,7 +211,7 @@ class TDZero():
 
     # Update the estimates of action values
     def update_estimates(self, state, reward, state_next, done):
-        self.trainer.train_step(state, reward, state_next, done)
+        loss = self.trainer.train_step(state, reward, state_next, done)
         self._epoch_memory.append((state, reward, state_next, done))
 
     def train_epoch(self):
@@ -221,23 +219,19 @@ class TDZero():
             self.update_estimates(*episode)
 
     def choose_action(self):
-        self._update_available_actions()
         if np.random.rand() < self.epsilon:
-            random_bet = np.random.choice(len(self._available_bet))
+            random_bet = np.random.choice(len(BET))
+            self._last_action = random_bet
             return random_bet
         else:
             state = torch.tensor(self.get_state(), dtype=torch.float)
             prediction = self.model(state)
-            # Slice unavailable actions
-            prediction[len(self._available_bet):] = float('-inf')
             bet = torch.argmax(prediction).item()
+            self._last_action = bet
             return bet
 
     def update_points(self, bet, reward):
-        if reward > 0:
-            self._win_times += 1
         self._hands_played += 1
-
         self.points += reward - bet
         self.rewards.append(self.points)
         if self.points >= self._upper_bound:
@@ -254,10 +248,3 @@ class TDZero():
             'hands_played': self._hands_played,
             'win_times': self._win_times,
             }, self._model_filename)
-
-    def _update_available_actions(self):
-        available_bet = []
-        for bet in self.all_bet:
-            if self.points >= bet:
-                available_bet.append(bet)
-        self._available_bet = available_bet
