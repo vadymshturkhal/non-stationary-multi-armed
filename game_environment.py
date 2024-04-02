@@ -23,8 +23,14 @@ class MultiArmedGame:
         self.is_rendering = is_rendering
         self.ai_agent = ai_agent
         self.dealers = [DealerRewards() for _ in range(k)]
-        self.game_stats = GameStats()    
-    
+        self.game_stats = GameStats()
+        self.points = START_POINT
+        self.last_bet = 0  
+        self.rewards = []
+
+        self._upper_bound = START_POINT * END_MULTIPLIER
+        self._lower_bound = START_POINT * MIN_POINTS_MULTIPLIER  
+
         # init display
         if self.is_rendering:
             pygame.init()
@@ -35,6 +41,11 @@ class MultiArmedGame:
             # Fonts
             pygame.font.init()  # Initialize font module
             self.font = pygame.font.Font(None, 36)
+
+    def reset(self):
+        self.points = START_POINT
+        self.last_bet = 0 
+        self.rewards.clear()
 
     def play_step(self):
         if self.is_rendering:
@@ -49,6 +60,7 @@ class MultiArmedGame:
         
         if action <= self.k:
             self.last_dealer = action + 1
+            self.last_bet = BET[bet]
             self.last_reward = self.dealers[action].get_reward(bet)
 
             # Game stats
@@ -57,6 +69,20 @@ class MultiArmedGame:
             return self.last_reward
         else:
             raise Exception(f"Can't pull arm {action}")
+    
+    def get_state(self):
+        return self.game_stats.get_state()
+
+    def update_points(self, bet, reward):
+        self.points += reward - bet
+        self.rewards.append(self.points)
+        if self.points >= self._upper_bound:
+            return True
+
+        if self.points <= self._lower_bound:
+            return True
+        
+        return False
 
     def _handle_events(self):
         for event in pygame.event.get():
@@ -66,6 +92,7 @@ class MultiArmedGame:
                 sys.exit()
             
             if self.ai_agent is None:
+                print()
                 if event.type == pygame.KEYDOWN:
                     if pygame.K_1 <= event.key <= pygame.K_9:
                         chosen_bandit = event.key - pygame.K_1
