@@ -59,14 +59,14 @@ class DB_Operations():
     def addapt_numpy_int64(self, numpy_int64):
         return AsIs(numpy_int64)
 
-    def add_epoch_to_db(self, epoch, epoch_reward, agent, rewards, betting):
+    def add_epoch_to_db(self, epoch, epoch_reward, game, rewards, betting):
         # Register the adapter
         cur = self._conn.cursor()
 
         cur.execute("INSERT INTO epochs (reward, description) VALUES (%s, %s)", (epoch_reward, ''))
         self._conn.commit()
 
-        points = agent.rewards
+        points = game.rewards
         average = np.cumsum(rewards) / np.arange(1, len(rewards) + 1)
 
         for step in range(len(rewards)):
