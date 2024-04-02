@@ -2,6 +2,7 @@ import pygame
 import sys
 
 from rewards import DealerRewards
+from settings import BET, END_MULTIPLIER, MIN_POINTS_MULTIPLIER, START_POINT
 
 
 # Screen dimensions
@@ -23,6 +24,15 @@ class MultiArmedGame:
         self.is_rendering = is_rendering
         self.ai_agent = ai_agent
         self.dealers = [DealerRewards() for _ in range(k)]
+
+        # Agent stats
+        self._hands_played = 0
+        self._win_times = 0
+        self._upper_bound = START_POINT * END_MULTIPLIER
+        self._lower_bound = START_POINT * MIN_POINTS_MULTIPLIER
+        self._win_bet = [0] * len(BET)
+        self._times_choose_bet = [0] * len(BET)
+        self._prob_bet = [0] * len(BET)
     
         # init display
         if self.is_rendering:
@@ -34,6 +44,13 @@ class MultiArmedGame:
             # Fonts
             pygame.font.init()  # Initialize font module
             self.font = pygame.font.Font(None, 36)
+
+    def reset(self):
+        self._hands_played = 0
+        self._win_times = 0
+        self._win_bet.clear()
+        self._times_choose_bet.clear()
+        self._prob_bet.clear()
 
     def play_step(self):
         if self.is_rendering:
@@ -51,6 +68,9 @@ class MultiArmedGame:
             self.last_bet = self.dealers[action].bet[bet]
             self.last_reward = self.dealers[action].get_reward(bet)
             self.total_score += self.last_reward
+
+            self._hands_played += 1
+            self._win_times += 1 if self.last_reward > 0 else 0
             return self.last_reward
         else:
             raise Exception(f"Can't pull arm {action}")
