@@ -1,5 +1,6 @@
 import pygame
 import sys
+from game_stats import GameStats
 
 from rewards import DealerRewards
 from settings import BET, END_MULTIPLIER, MIN_POINTS_MULTIPLIER, START_POINT
@@ -16,18 +17,13 @@ text_color = (255, 255, 255)
 
 class MultiArmedGame:
     def __init__(self, k, speed=30, is_rendering=True, ai_agent=None):
-        self.total_score = 0
         self.last_dealer = 0
-        self.last_bet = None
         self.k = k
         self.game_speed = speed
         self.is_rendering = is_rendering
         self.ai_agent = ai_agent
         self.dealers = [DealerRewards() for _ in range(k)]
-
-        # Agent stats
-        self._upper_bound = START_POINT * END_MULTIPLIER
-        self._lower_bound = START_POINT * MIN_POINTS_MULTIPLIER       
+        self.game_stats = GameStats()    
     
         # init display
         if self.is_rendering:
@@ -53,9 +49,10 @@ class MultiArmedGame:
         
         if action <= self.k:
             self.last_dealer = action + 1
-            self.last_bet = self.dealers[action].bet[bet]
             self.last_reward = self.dealers[action].get_reward(bet)
-            self.total_score += self.last_reward
+
+            # Game stats
+            self.game_stats.add_hand_reward(bet, self.last_reward)
 
             return self.last_reward
         else:
