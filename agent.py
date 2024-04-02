@@ -166,15 +166,12 @@ class TDZero():
     def __init__(self, alpha=0.1, epsilon=0.1, gamma=0, is_load_weights=False):
         self.epsilon = epsilon
         self.points = START_POINT
-        self.rewards = []
 
         self.alpha = alpha
         self.gamma = gamma
 
         self._upper_bound = START_POINT * END_MULTIPLIER
         self._lower_bound = START_POINT * MIN_POINTS_MULTIPLIER
-        self._hands_played = 0
-        self._win_times = 0
 
         self._epoch_memory = deque(maxlen=MAX_MEMORY)
         self.model = Linear_QNet(INPUT_LAYER_SIZE, HIDDEN_LAYER_SIZE1, HIDDEN_LAYER_SIZE2, len(BET))
@@ -189,29 +186,10 @@ class TDZero():
             self.model.load_state_dict(checkpoint['model_state_dict'])
             self.model.eval()
 
-    def reset_points(self):
-        self.points = START_POINT
-        self.rewards.clear()
-        self._epoch_memory.clear()
-
-    def get_state(self) -> np.array:
-        if self._hands_played == 0:
-            win_prob = 0
-        else:
-            win_prob = self._win_times / self._hands_played
-
-        state =  np.array([
-            self.points,
-            win_prob,
-            self._upper_bound,
-            self._lower_bound,
-            ])
-
-        return state
-
     # Update the estimates of action values
     def update_estimates(self, state, reward, state_next, done):
         loss = self.trainer.train_step(state, reward, state_next, done)
+        # print(loss)
         self._epoch_memory.append((state, reward, state_next, done))
 
     def train_epoch(self):
@@ -229,18 +207,6 @@ class TDZero():
             bet = torch.argmax(prediction).item()
             self._last_action = bet
             return bet
-
-    def update_points(self, bet, reward):
-        self._hands_played += 1
-        self.points += reward - bet
-        self.rewards.append(self.points)
-        if self.points >= self._upper_bound:
-            return True
-
-        if self.points <= self._lower_bound:
-            return True
-        
-        return False
 
     def save(self):
         torch.save({
