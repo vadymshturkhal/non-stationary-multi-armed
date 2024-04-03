@@ -1,4 +1,5 @@
-from agent import NonStationaryAgent, NonStationaryAgentBet, TDZero
+from agents.tdzero import TDZero
+from agent import NonStationaryAgent
 from game_environment import MultiArmedGame
 from settings import START_POINT
 from utils import DB_Operations
@@ -13,9 +14,9 @@ class TrainAgent:
         self._betting = []
         self._loss = []
 
-    def train(self, games=1000):
+    def train(self, games=1000, is_load_bet_weights=False):
         cost = 0
-        db_operations = DB_Operations()
+        db_operations = DB_Operations(is_clear=not is_load_bet_weights)
 
         for game in range(games):
             game_reward = self._train_single_game()
@@ -70,7 +71,7 @@ if __name__ =='__main__':
     epsilon = 0.1
     alpha = 0.01
     gamma = 0.4
-    games = 100
+    games = 1000
     is_load_bet_weights = False
 
     game = MultiArmedGame(k, speed=60, is_rendering=False) 
