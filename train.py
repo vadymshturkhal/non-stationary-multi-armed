@@ -1,8 +1,14 @@
 from agents.tdzero import TDZero
-from agent import NonStationaryAgent
+from agents.agents import NonStationaryAgent
 from game_environment import MultiArmedGame
 from settings import START_POINT
 from utils import DB_Operations
+
+import sys
+from pathlib import Path
+
+# Add the parent directory to sys.path
+sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 
 class TrainAgent:

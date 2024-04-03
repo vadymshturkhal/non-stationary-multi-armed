@@ -2,13 +2,6 @@ from collections import deque
 import torch
 import numpy as np
 
-import sys
-from pathlib import Path
-
-# Add the parent directory to sys.path
-sys.path.append(str(Path(__file__).resolve().parent.parent))
-
-
 from settings import BET, END_MULTIPLIER, MAX_MEMORY, MIN_POINTS_MULTIPLIER, MODEL_FOLDER, START_POINT
 from settings import INPUT_LAYER_SIZE, HIDDEN_LAYER_SIZE1, HIDDEN_LAYER_SIZE2
 from game_stats import GameStats

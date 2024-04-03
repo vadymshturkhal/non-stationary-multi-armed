@@ -1,11 +1,6 @@
-from collections import deque
 import numpy as np
-import torch
-from game_stats import GameStats
 
-
-from model import Linear_QNet, TDZeroTrainer
-from settings import BET, END_MULTIPLIER, HIDDEN_LAYER_SIZE1, HIDDEN_LAYER_SIZE2, INPUT_LAYER_SIZE, MAX_MEMORY, MIN_POINTS_MULTIPLIER, MODEL_FOLDER, START_POINT
+from settings import BET, END_MULTIPLIER, START_POINT
 
 
 class Agent:
