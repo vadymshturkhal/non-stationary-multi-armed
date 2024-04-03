@@ -71,7 +71,7 @@ class MultiArmedGame:
             raise Exception(f"Can't pull arm {action}")
     
     def get_state(self):
-        return self.game_stats.get_state()
+        return self.game_stats.get_state(points=self.points)
 
     def update_points(self, bet, reward):
         self.points += reward - bet
