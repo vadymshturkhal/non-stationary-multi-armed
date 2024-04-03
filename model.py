@@ -93,3 +93,45 @@ class SARSATrainer:
         self.optimizer.step()
 
         return loss.item()
+
+class QLearningTrainer:
+    def __init__(self, model, lr, gamma):
+        self.lr = lr
+        self.gamma = gamma
+        self.model = model
+        self.optimizer = optim.Adam(model.parameters(), lr=self.lr)
+        self.criterion = nn.SmoothL1Loss()
+
+    def train_step(self, state, action, reward, next_state, done):
+        state = torch.tensor(state, dtype=torch.float)
+        action = torch.tensor(action, dtype=torch.long)
+        reward = torch.tensor(reward, dtype=torch.float)
+        next_state = torch.tensor(next_state, dtype=torch.float)
+        done = torch.tensor(done, dtype=torch.float)
+
+        # Reshape for batch size 1, if necessary
+        if len(state.shape) == 1:
+            state = torch.unsqueeze(state, 0)
+            next_state = torch.unsqueeze(next_state, 0)
+            action = torch.unsqueeze(action, 0)
+            reward = torch.unsqueeze(reward, 0)
+            done = torch.unsqueeze(done, 0)
+
+        # Compute current Q values (Q(s,a))
+        current_q_values = self.model(state).gather(1, action.unsqueeze(-1)).squeeze(-1)
+
+        # Compute next Q values (max Q(s',a))
+        next_q_values = self.model(next_state).detach().max(1)[0]
+
+        # Compute the target of the current Q values
+        target_q_values = reward + (1 - done) * self.gamma * next_q_values
+
+        # Calculate loss
+        loss = self.criterion(current_q_values, target_q_values)
+
+        # Backpropagation
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
+
+        return loss.item()
