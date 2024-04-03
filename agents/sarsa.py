@@ -40,6 +40,19 @@ class SARSA():
     def update_estimates(self, state, action, reward, next_state, next_action, done):
         loss = self.trainer.train_step(state, action, reward, next_state, next_action, done)
         return loss
+    
+    # Update the estimates of action values
+    def update_episode_estimates(self, states, actions, rewards):
+        episode_loss = [0]
+        for i in range(1, len(states)):
+            prev_state = states[i - 1]
+            prev_action = actions[i - 1]
+            reward = rewards[i - 1]
+            state = states[i]
+            action = actions[i]
+            loss = self.trainer.train_step(prev_state, prev_action, reward, state, action, done=False)
+            episode_loss.append(loss)
+        return episode_loss
 
     def choose_action(self):
         if np.random.rand() < self.epsilon:

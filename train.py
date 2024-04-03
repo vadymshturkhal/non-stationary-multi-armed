@@ -11,9 +11,10 @@ class TrainAgent:
         self.game = game
         self.main_agent = main_agent
         self.bet_agent = bet_agent
+        self._states = []
+        self._actions = []
         self._rewards = []
         self._betting = []
-        self._loss = []
 
     def train(self, games=1000, is_load_bet_weights=False):
         cost = 0
@@ -21,10 +22,14 @@ class TrainAgent:
 
         for game in range(games):
             game_reward = self._train_single_game()
+
+            # Train Agent
+            episode_loss = self.bet_agent.update_episode_estimates(self._states, self._actions, self._rewards)
+
             game_reward = game_reward - START_POINT
             cost += game_reward
             
-            db_operations.add_epoch_to_db(game, game_reward, self.game, self._rewards, self._betting, self._loss)
+            db_operations.add_epoch_to_db(game, game_reward, self.game, self._rewards, self._betting, episode_loss)
             self.game.reset()
 
             if game_reward > START_POINT:
@@ -32,6 +37,10 @@ class TrainAgent:
                 print(f'{game_reward=}, {game=}, saved')
             else:
                 print(f'{game_reward=}, {game=}')
+
+            self._states.clear()
+            self._actions.clear()
+            self._rewards.clear()
 
         return cost
 
@@ -41,8 +50,6 @@ class TrainAgent:
         self.game.reset()
         is_game_end = False
 
-        prev_state = None
-        prev_action = None
         while not is_game_end:
             state = self.game.get_state()
 
@@ -58,19 +65,8 @@ class TrainAgent:
 
             self.main_agent.update_estimates(choose_dealer, reward - last_bet)
 
-            # TDZero
-            # loss = self.bet_agent.update_estimates(state, reward, state_next, is_game_end)
-
-            # SARSA
-            if prev_state is not None:
-                loss = self.bet_agent.update_estimates(prev_state, prev_action, reward, state, action_bet, is_game_end)
-            else:
-                loss = 0
-            prev_state = state
-            prev_action = action_bet
-
-
-            self._loss.append(loss)
+            self._states.append(state)
+            self._actions.append(action_bet)
             self._rewards.append(reward)
             self._betting.append(last_bet)
 
@@ -80,9 +76,9 @@ class TrainAgent:
 if __name__ =='__main__':
     k = 1  # Number of arms
     epsilon = 0.1
-    alpha = 0.01
+    alpha = 0.5
     gamma = 0.4
-    games = 1
+    games = 100
     is_load_bet_weights = False
 
     game = MultiArmedGame(k, speed=60, is_rendering=False) 
