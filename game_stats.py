@@ -32,9 +32,10 @@ class GameStats:
         self._times_choose_bet.clear()
         self._prob_bet.clear()
 
-    def get_state(self):
+    def get_state(self, points):
         general_win_probability = np.sum(self._win_bet) / self.hands_played
         state = np.array([
+            points,
             *self._win_bet,
             *self._times_choose_bet,
             *self._prob_bet,
