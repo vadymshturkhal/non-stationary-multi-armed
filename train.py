@@ -26,7 +26,6 @@ class TrainAgent:
             
             db_operations.add_epoch_to_db(game, game_reward, self.game, self._rewards, self._betting, self._loss)
             self.game.reset()
-            # self.bet_agent.train_epoch()
 
             if game_reward > START_POINT:
                 self.bet_agent.save(self.game.game_stats)
@@ -47,9 +46,6 @@ class TrainAgent:
 
             choose_dealer = self.main_agent.choose_action()
             action_bet = self.bet_agent.choose_action()
-            print(action_bet)
-            print(action_bet)
-            print(action_bet)
 
             reward = self.game.apply_action(choose_dealer, bet=action_bet)
 
@@ -65,10 +61,6 @@ class TrainAgent:
             loss = self.bet_agent.update_estimates(state, reward, state_next, is_game_end)
             # SARSA
             # loss = self.bet_agent.update_estimates(state, action_bet, reward, state_next, action_next, is_game_end)
-
-            print(action_bet_next)
-            print()
-            print()
 
             self._loss.append(loss)
             self._rewards.append(reward)
