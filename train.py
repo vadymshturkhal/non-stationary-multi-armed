@@ -2,7 +2,7 @@ from agents.tdzero import TDZero
 from agents.sarsa import SARSA
 from agents.agents import NonStationaryAgent
 from game_environment import MultiArmedGame
-from settings import START_POINT
+from settings import END_MULTIPLIER, REWARD_WIN, REWARD_LOOSE, START_POINT
 from utils import DB_Operations
 
 
@@ -32,7 +32,8 @@ class TrainAgent:
             db_operations.add_epoch_to_db(game, game_reward, self.game, self._rewards, self._betting, episode_loss)
             self.game.reset()
 
-            if game_reward > START_POINT:
+            # Save model
+            if game_reward + START_POINT > START_POINT * END_MULTIPLIER:
                 self.bet_agent.save(self.game.game_stats)
                 print(f'{game_reward=}, {game=}, saved')
             else:
@@ -67,7 +68,7 @@ class TrainAgent:
 
             self._states.append(state)
             self._actions.append(action_bet)
-            self._rewards.append(reward)
+            self._rewards.append(REWARD_WIN if reward > 0 else REWARD_LOOSE)
             self._betting.append(last_bet)
 
         return self.game.points
@@ -76,9 +77,9 @@ class TrainAgent:
 if __name__ =='__main__':
     k = 1  # Number of arms
     epsilon = 0.1
-    alpha = 0.5
+    alpha = 0.1
     gamma = 0.4
-    games = 100
+    games = 1
     is_load_bet_weights = False
 
     game = MultiArmedGame(k, speed=60, is_rendering=False) 
