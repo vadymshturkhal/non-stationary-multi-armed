@@ -193,10 +193,6 @@ class TDZero():
         # print(loss)
         self._epoch_memory.append((state, reward, state_next, done))
 
-    def train_epoch(self):
-        for episode in self._epoch_memory:
-            self.update_estimates(*episode)
-
     def choose_action(self):
         if np.random.rand() < self.epsilon:
             random_bet = np.random.choice(len(BET))
