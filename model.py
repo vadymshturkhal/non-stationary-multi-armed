@@ -58,3 +58,38 @@ class TDZeroTrainer:
         self.optimizer.step()
 
         return loss.item()
+
+class SARSATrainer:
+    def __init__(self, model, lr, gamma):
+        self.lr = lr
+        self.gamma = gamma
+        self.model = model
+        self.optimizer = optim.Adam(model.parameters(), lr=self.lr)
+        self.criterion = nn.SmoothL1Loss()
+
+    def train_step(self, state, action, reward, next_state, next_action, done: bool):
+        state = torch.tensor(state, dtype=torch.float)
+        action = torch.tensor(action, dtype=torch.long)
+        reward = torch.tensor(reward, dtype=torch.float)
+        next_state = torch.tensor(next_state, dtype=torch.float)
+        next_action = torch.tensor(next_action, dtype=torch.long)
+
+        # (n, )
+        if len(state.shape) == 1:
+            state = torch.unsqueeze(state, 0)
+            next_state = torch.unsqueeze(next_state, 0)
+            action = torch.unsqueeze(action, 0)
+            reward = torch.unsqueeze(reward, 0)
+            next_action = torch.unsqueeze(next_action, 0)
+
+        q_values = self.model(state).gather(1, action.unsqueeze(-1)).squeeze(-1)
+        next_q_values = self.model(next_state).gather(1, next_action.unsqueeze(-1)).squeeze(-1)
+        expected_q_values = reward + self.gamma * next_q_values * (1 - float(done))
+
+        loss = self.criterion(q_values, expected_q_values)
+
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
+
+        return loss.item()

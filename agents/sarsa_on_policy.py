@@ -11,10 +11,10 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 from settings import BET, END_MULTIPLIER, MAX_MEMORY, MIN_POINTS_MULTIPLIER, MODEL_FOLDER, START_POINT
 from settings import INPUT_LAYER_SIZE, HIDDEN_LAYER_SIZE1, HIDDEN_LAYER_SIZE2
 from game_stats import GameStats
-from model import Linear_QNet, TDZeroTrainer
+from model import Linear_QNet, SARSATrainer, TDZeroTrainer
 
 
-class TDZero():
+class SarsaOnPolicy():
     def __init__(self, game, alpha=0.1, epsilon=0.1, gamma=0, is_load_weights=False):
         self.game = game
         self.epsilon = epsilon
@@ -26,8 +26,8 @@ class TDZero():
         self._lower_bound = START_POINT * MIN_POINTS_MULTIPLIER
 
         self.model = Linear_QNet(INPUT_LAYER_SIZE, HIDDEN_LAYER_SIZE1, HIDDEN_LAYER_SIZE2, len(BET))
-        self.trainer = TDZeroTrainer(self.model, lr=self.alpha, gamma=self.gamma)
-        self._model_filename = MODEL_FOLDER + 'tdzero.pth'
+        self.trainer = SARSATrainer(self.model, lr=self.alpha, gamma=self.gamma)
+        self._model_filename = MODEL_FOLDER + 'sarsa_on_policy.pth'
 
         # Load the weights onto the CPU or GPU
         if is_load_weights:
@@ -42,13 +42,13 @@ class TDZero():
         loss = self.trainer.train_step(state, reward, state_next, done)
         return loss
 
-    def choose_action(self):
+    def choose_action(self, state):
         if np.random.rand() < self.epsilon:
             return np.random.choice(len(BET))
         else:
-            state = torch.tensor(self.game.get_state(), dtype=torch.float)
-            prediction = self.model(state)
-            return torch.argmax(prediction).item()
+            state = torch.tensor(state, dtype=torch.float)
+            q_values = self.model(state)
+            return torch.argmax(q_values).item()
 
     def save(self, stat_class: GameStats):
         torch.save({
