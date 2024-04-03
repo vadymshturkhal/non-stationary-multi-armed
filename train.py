@@ -1,6 +1,6 @@
 from agent import NonStationaryAgent, NonStationaryAgentBet, TDZero
 from game_environment import MultiArmedGame
-from settings import START_POINT, BET
+from settings import START_POINT
 from utils import DB_Operations
 
 
@@ -11,6 +11,7 @@ class TrainAgent:
         self.bet_agent = bet_agent
         self._rewards = []
         self._betting = []
+        self._loss = []
 
     def train(self, games=1000):
         cost = 0
@@ -55,8 +56,9 @@ class TrainAgent:
             state_next = self.game.get_state()
 
             self.main_agent.update_estimates(choose_dealer, reward - last_bet)
-            self.bet_agent.update_estimates(state, reward - last_bet, state_next, is_game_end)
+            loss = self.bet_agent.update_estimates(state, reward - last_bet, state_next, is_game_end)
 
+            self._loss.append(loss)
             self._rewards.append(reward)
             self._betting.append(last_bet)
 
@@ -68,7 +70,7 @@ if __name__ =='__main__':
     epsilon = 0.1
     alpha = 0.01
     gamma = 0.4
-    games = 10000
+    games = 100
     is_load_bet_weights = False
 
     game = MultiArmedGame(k, speed=60, is_rendering=False) 

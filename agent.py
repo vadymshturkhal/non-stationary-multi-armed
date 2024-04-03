@@ -190,8 +190,8 @@ class TDZero():
     # Update the estimates of action values
     def update_estimates(self, state, reward, state_next, done):
         loss = self.trainer.train_step(state, reward, state_next, done)
-        # print(loss)
         self._epoch_memory.append((state, reward, state_next, done))
+        return loss
 
     def choose_action(self):
         if np.random.rand() < self.epsilon:
