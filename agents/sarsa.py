@@ -37,11 +37,6 @@ class SARSA():
             self.model.eval()
 
     # Update the estimates of action values
-    def update_estimates(self, state, action, reward, next_state, next_action, done):
-        loss = self.trainer.train_step(state, action, reward, next_state, next_action, done)
-        return loss
-    
-    # Update the estimates of action values
     def update_episode_estimates(self, states, actions, rewards):
         episode_loss = [0]
         for i in range(1, len(states)):
