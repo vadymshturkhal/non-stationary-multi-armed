@@ -13,7 +13,7 @@ from game_stats import GameStats
 from model import Linear_QNet, SARSATrainer
 
 
-class SarsaOnPolicy():
+class SARSA():
     def __init__(self, game, alpha=0.1, epsilon=0.1, gamma=0, is_load_weights=False):
         self.game = game
         self.epsilon = epsilon
@@ -37,15 +37,15 @@ class SarsaOnPolicy():
             self.model.eval()
 
     # Update the estimates of action values
-    def update_estimates(self, state, reward, state_next, done):
-        loss = self.trainer.train_step(state, reward, state_next, done)
+    def update_estimates(self, state, action, reward, next_state, next_action, done):
+        loss = self.trainer.train_step(state, action, reward, next_state, next_action, done)
         return loss
 
-    def choose_action(self, state):
+    def choose_action(self):
         if np.random.rand() < self.epsilon:
             return np.random.choice(len(BET))
         else:
-            state = torch.tensor(state, dtype=torch.float)
+            state = torch.tensor(self.game.get_state(), dtype=torch.float)
             q_values = self.model(state)
             return torch.argmax(q_values).item()
 

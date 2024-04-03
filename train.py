@@ -1,5 +1,5 @@
 from agents.tdzero import TDZero
-from agents.sarsa_on_policy import SarsaOnPolicy
+from agents.sarsa import SARSA
 from agents.agents import NonStationaryAgent
 from game_environment import MultiArmedGame
 from settings import START_POINT
@@ -41,6 +41,8 @@ class TrainAgent:
         self.game.reset()
         is_game_end = False
 
+        prev_state = None
+        prev_action = None
         while not is_game_end:
             state = self.game.get_state()
 
@@ -54,13 +56,19 @@ class TrainAgent:
             last_bet = self.game.last_bet
             is_game_end = self.game.update_points(last_bet, reward)
 
-            state_next = self.game.get_state()
-
             self.main_agent.update_estimates(choose_dealer, reward - last_bet)
+
             # TDZero
-            loss = self.bet_agent.update_estimates(state, reward, state_next, is_game_end)
+            # loss = self.bet_agent.update_estimates(state, reward, state_next, is_game_end)
+
             # SARSA
-            # loss = self.bet_agent.update_estimates(state, action_bet, reward, state_next, action_next, is_game_end)
+            if prev_state is not None:
+                loss = self.bet_agent.update_estimates(prev_state, prev_action, reward, state, action_bet, is_game_end)
+            else:
+                loss = 0
+            prev_state = state
+            prev_action = action_bet
+
 
             self._loss.append(loss)
             self._rewards.append(reward)
@@ -79,7 +87,7 @@ if __name__ =='__main__':
 
     game = MultiArmedGame(k, speed=60, is_rendering=False) 
     main_agent = NonStationaryAgent(k, epsilon, alpha)
-    bet_agent = TDZero(game, alpha, epsilon, gamma, is_load_weights=is_load_bet_weights)
+    bet_agent = SARSA(game, alpha, epsilon, gamma, is_load_weights=is_load_bet_weights)
     # bet_agent = SarsaOnPolicy(game, alpha, epsilon, gamma, is_load_weights=is_load_bet_weights)
 
     ta = TrainAgent(game=game, main_agent=main_agent, bet_agent=bet_agent)
