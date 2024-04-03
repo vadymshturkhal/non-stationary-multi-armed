@@ -22,7 +22,7 @@ class TrainAgent:
             game_reward = game_reward - START_POINT
             cost += game_reward
             
-            db_operations.add_epoch_to_db(game, game_reward, self.game, self._rewards, self._betting)
+            db_operations.add_epoch_to_db(game, game_reward, self.game, self._rewards, self._betting, self._loss)
             self.game.reset()
             # self.bet_agent.train_epoch()
 
