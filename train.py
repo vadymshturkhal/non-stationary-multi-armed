@@ -84,7 +84,6 @@ if __name__ =='__main__':
     game = MultiArmedGame(k, speed=60, is_rendering=False) 
     main_agent = NonStationaryAgent(k, epsilon, alpha)
     bet_agent = SARSA(game, alpha, epsilon, gamma, is_load_weights=is_load_bet_weights)
-    # bet_agent = SarsaOnPolicy(game, alpha, epsilon, gamma, is_load_weights=is_load_bet_weights)
 
     ta = TrainAgent(game=game, main_agent=main_agent, bet_agent=bet_agent)
     print(ta.train(games=games))
