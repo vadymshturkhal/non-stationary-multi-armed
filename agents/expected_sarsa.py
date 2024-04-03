@@ -10,10 +10,10 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 from settings import BET, END_MULTIPLIER, MIN_POINTS_MULTIPLIER, MODEL_FOLDER, START_POINT
 from settings import INPUT_LAYER_SIZE, HIDDEN_LAYER_SIZE1, HIDDEN_LAYER_SIZE2
 from game_stats import GameStats
-from model import Linear_QNet, QLearningTrainer
+from model import Linear_QNet, ExpectedSARSATrainer
 
 
-class QLearning():
+class ExpectedSARSA():
     def __init__(self, game, alpha=0.1, epsilon=0.1, gamma=0, is_load_weights=False):
         self.game = game
         self.epsilon = epsilon
@@ -25,8 +25,8 @@ class QLearning():
         self._lower_bound = START_POINT * MIN_POINTS_MULTIPLIER
 
         self.model = Linear_QNet(INPUT_LAYER_SIZE, HIDDEN_LAYER_SIZE1, HIDDEN_LAYER_SIZE2, len(BET))
-        self.trainer = QLearningTrainer(self.model, lr=self.alpha, gamma=self.gamma)
-        self._model_filename = MODEL_FOLDER + 'qlearning_off_policy.pth'
+        self.trainer = ExpectedSARSATrainer(self.model, lr=self.alpha, gamma=self.gamma)
+        self._model_filename = MODEL_FOLDER + 'expected_sarsa.pth'
 
         # Load the weights onto the CPU or GPU
         if is_load_weights:
