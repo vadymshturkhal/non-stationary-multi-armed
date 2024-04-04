@@ -16,9 +16,10 @@ text_color = (255, 255, 255)
 
 
 class MultiArmedGame:
-    def __init__(self, k, speed=30, is_rendering=True, ai_agent=None):
+    def __init__(self, k, total_games, speed=30, is_rendering=True, ai_agent=None):
         self.last_dealer = 0
         self.k = k
+        self.total_games_remain = total_games
         self.game_speed = speed
         self.is_rendering = is_rendering
         self.ai_agent = ai_agent
@@ -46,6 +47,7 @@ class MultiArmedGame:
         self.points = START_POINT
         self.last_bet = 0 
         self.rewards.clear()
+        self.total_games_remain -= 1
 
     def play_step(self):
         if self.is_rendering:
@@ -64,7 +66,7 @@ class MultiArmedGame:
             self.last_reward = self.dealers[action].get_reward(bet)
 
             # Game stats
-            self.game_stats.add_hand_reward(bet, self.last_reward)
+            self.game_stats.add_hand_reward(self.last_bet, bet, self.last_reward)
 
             return self.last_reward
         else:

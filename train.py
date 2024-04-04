@@ -22,6 +22,7 @@ class TrainAgent:
         cost = 0
         db_operations = DB_Operations(is_clear=not is_load_bet_weights)
 
+        games = self.game.total_games_remain
         for game in range(games):
             game_reward = self._train_single_game()
 
@@ -53,7 +54,7 @@ class TrainAgent:
             state = self.game.get_state()
 
             choose_dealer = self.main_agent.choose_action()
-            action_bet = self.bet_agent.choose_action()
+            action_bet = self.bet_agent.choose_action(state)
 
             reward = self.game.apply_action(choose_dealer, bet=action_bet)
 
@@ -82,15 +83,15 @@ class TrainAgent:
 
 if __name__ =='__main__':
     k = 1  # Number of arms
-    epsilon = 0.1
+    min_epsilon = 0.1
     alpha = 0.5
-    gamma = 0.5
+    gamma = 0.9
     games = 100
-    is_load_bet_weights = True
+    is_load_bet_weights = False
 
-    game = MultiArmedGame(k, speed=60, is_rendering=False) 
-    main_agent = NonStationaryAgent(k, epsilon, alpha)
-    bet_agent = ExpectedSARSA(game, alpha, epsilon, gamma, is_load_weights=is_load_bet_weights)
+    game = MultiArmedGame(k, total_games=games, speed=60, is_rendering=False) 
+    main_agent = NonStationaryAgent(k, min_epsilon, alpha)
+    bet_agent = ExpectedSARSA(game, alpha, min_epsilon, gamma, is_load_weights=is_load_bet_weights)
 
     ta = TrainAgent(game=game, main_agent=main_agent, bet_agent=bet_agent)
-    print(ta.train(games=games))
+    print(ta.train())

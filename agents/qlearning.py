@@ -48,11 +48,12 @@ class QLearning():
             episode_loss.append(loss)
         return episode_loss
 
-    def choose_action(self):
+    def choose_action(self, state):
+        """Epsilon-greedy policy implementation"""
         if np.random.rand() < self.epsilon:
             return np.random.choice(len(BET))
         else:
-            state = torch.tensor(self.game.get_state(), dtype=torch.float)
+            state = torch.tensor(state, dtype=torch.float)
             q_values = self.model(state)
             return torch.argmax(q_values).item()
 

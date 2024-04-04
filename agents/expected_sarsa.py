@@ -16,7 +16,9 @@ from model import Linear_QNet, ExpectedSARSATrainer
 class ExpectedSARSA():
     def __init__(self, game, alpha=0.1, epsilon=0.1, gamma=0, is_load_weights=False):
         self.game = game
-        self.epsilon = epsilon
+        self.min_epsilon = epsilon
+        self._games_to_play = game.total_games_remain
+        self._games_played = 0
 
         self.alpha = alpha
         self.gamma = gamma
@@ -48,11 +50,19 @@ class ExpectedSARSA():
             episode_loss.append(loss)
         return episode_loss
 
-    def choose_action(self):
-        if np.random.rand() < self.epsilon:
+    def choose_action(self, state):
+        """
+        Epsilon-greedy policy implementation.
+
+        Returns:
+        - action: The action selected according to the epsilon-greedy policy.
+        """
+        epsilon = max(self.game.total_games_remain / self._games_to_play, self.min_epsilon)
+
+        if np.random.rand() < epsilon:
             return np.random.choice(len(BET))
         else:
-            state = torch.tensor(self.game.get_state(), dtype=torch.float)
+            state = torch.tensor(state, dtype=torch.float)
             q_values = self.model(state)
             return torch.argmax(q_values).item()
 

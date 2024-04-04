@@ -178,7 +178,7 @@ class ExpectedSARSATrainer:
 
         return loss.item()
 
-        # Define the policy function that returns the probability distribution over actions
+    # Define the policy function that returns the probability distribution over actions
     def policy(self, state):
         with torch.no_grad():
             q_values = self.model(state)
