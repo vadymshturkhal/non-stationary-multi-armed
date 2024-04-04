@@ -1,3 +1,5 @@
+from agents.expected_sarsa import ExpectedSARSA
+from agents.qlearning import QLearning
 from agents.tdzero import TDZero
 from agents.sarsa import SARSA
 from agents.agents import NonStationaryAgent
@@ -38,16 +40,12 @@ class TrainAgent:
                 print(f'{game_reward=}, {game=}, saved')
             else:
                 print(f'{game_reward=}, {game=}')
-
-            self._states.clear()
-            self._actions.clear()
-            self._rewards.clear()
+            
+            self._clear_epoch_data()
 
         return cost
 
     def _train_single_game(self):
-        self._rewards.clear()
-        self._betting.clear()
         self.game.reset()
         is_game_end = False
 
@@ -66,25 +64,33 @@ class TrainAgent:
 
             self.main_agent.update_estimates(choose_dealer, reward - last_bet)
 
+            agent_reward = reward - last_bet
+
             self._states.append(state)
             self._actions.append(action_bet)
-            self._rewards.append(REWARD_WIN if reward > 0 else REWARD_LOOSE)
+            self._rewards.append(agent_reward)
             self._betting.append(last_bet)
 
         return self.game.points
+
+    def _clear_epoch_data(self):
+        self._states.clear()
+        self._actions.clear()
+        self._rewards.clear()
+        self._betting.clear()
 
 
 if __name__ =='__main__':
     k = 1  # Number of arms
     epsilon = 0.1
-    alpha = 0.1
-    gamma = 0.4
-    games = 1
-    is_load_bet_weights = False
+    alpha = 0.5
+    gamma = 0.5
+    games = 100
+    is_load_bet_weights = True
 
     game = MultiArmedGame(k, speed=60, is_rendering=False) 
     main_agent = NonStationaryAgent(k, epsilon, alpha)
-    bet_agent = SARSA(game, alpha, epsilon, gamma, is_load_weights=is_load_bet_weights)
+    bet_agent = ExpectedSARSA(game, alpha, epsilon, gamma, is_load_weights=is_load_bet_weights)
 
     ta = TrainAgent(game=game, main_agent=main_agent, bet_agent=bet_agent)
     print(ta.train(games=games))
