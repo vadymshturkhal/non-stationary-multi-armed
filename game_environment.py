@@ -49,6 +49,9 @@ class MultiArmedGame:
         self.rewards.clear()
         self.total_games_remain -= 1
 
+        if self.total_games_remain < 0:
+            raise Exception('self.total_games_remain < 0')
+
     def play_step(self):
         if self.is_rendering:
             self._handle_events()
