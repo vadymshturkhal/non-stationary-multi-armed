@@ -86,7 +86,7 @@ if __name__ =='__main__':
     alpha = 0.5
     gamma = 0.9
     games = 400
-    is_load_bet_weights = False
+    is_load_bet_weights = True
 
     game = MultiArmedGame(k, total_games=games, speed=60, is_rendering=False) 
     main_agent = NonStationaryAgent(k, min_epsilon, alpha)
