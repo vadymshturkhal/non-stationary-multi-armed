@@ -33,7 +33,6 @@ class TrainAgent:
             cost += game_reward
             
             db_operations.add_epoch_to_db(game, game_reward, self.game, self._rewards, self._betting, episode_loss)
-            self.game.reset()
 
             # Save model
             if game_reward + START_POINT > START_POINT * END_MULTIPLIER:
@@ -86,7 +85,7 @@ if __name__ =='__main__':
     min_epsilon = 0.1
     alpha = 0.5
     gamma = 0.9
-    games = 100
+    games = 400
     is_load_bet_weights = False
 
     game = MultiArmedGame(k, total_games=games, speed=60, is_rendering=False) 
